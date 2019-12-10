@@ -1,17 +1,3 @@
-// Copyright 2019 The MediaPipe Authors.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
 // An example of sending OpenCV webcam frames into a MediaPipe graph.
 // This example requires a linux computer and a GPU with EGL support drivers.
 
@@ -117,9 +103,11 @@ DEFINE_string(output_video_path, "",
 	string output=FLAGS_input_video_path;
 	output.replace(output.end()-4,output.end(),".txt");    
 	freopen( output.c_str(), "w", stdout );
-	cout<<"LM0_00\tLM0_01\tLM0_02\tLM0_03\tLM0_04\tLM0_05\tLM0_06\tLM0_07\tLM0_08\tLM0_09\tLM0_10\tLM0_11\tLM0_12\tLM0_13\tLM0_14\tLM0_15\tLM0_16\tLM0_17\tLM0_18\tLM0_19\tLM0_20\t";
-	cout<<"LM1_00\tLM1_01\tLM1_02\tLM1_03\tLM1_04\tLM1_05\tLM1_06\tLM1_07\tLM1_08\tLM1_09\tLM1_10\tLM1_11\tLM1_12\tLM1_13\tLM1_14\tLM1_15\tLM1_16\tLM1_17\tLM1_18\tLM1_19\tLM1_20\n";
-
+	cout<<"LM0_00x\tLM0_00y\tLM0_01x\tLM0_01y\tLM0_02x\tLM0_02y\tLM0_03x\tLM0_03y\tLM0_04x\tLM0_04y\tLM0_05x\tLM0_05y\tLM0_06x\tLM0_06y\tLM0_07x\tLM0_07y\tLM0_08x\tLM0_08y\tLM0_09x\tLM0_09y\tLM0_10x\t";
+	cout<<"LM0_10y\tLM0_11x\tLM0_11y\tLM0_12x\tLM0_12y\tLM0_13x\tLM0_13y\tLM0_14x\tLM0_14y\tLM0_15x\tLM0_15y\tLM0_16x\tLM0_16y\tLM0_17x\tLM0_17y\tLM0_18x\tLM0_18y\tLM0_19x\tLM0_19y\tLM0_20x\tLM0_20y\t";
+	
+	cout<<"LM1_00x\tLM1_00y\tLM1_01x\tLM1_01y\tLM1_02x\tLM1_02y\tLM1_03x\tLM1_03y\tLM1_04x\tLM1_04y\tLM1_05x\tLM1_05y\tLM1_06x\tLM1_06y\tLM1_07x\tLM1_07y\tLM1_08x\tLM1_08y\tLM1_09x\tLM1_09y\tLM1_10x\t";
+	cout<<"LM1_10y\tLM1_11x\tLM1_11y\tLM1_12x\tLM1_12y\tLM1_13x\tLM1_13y\tLM1_14x\tLM1_14y\tLM1_15x\tLM1_15y\tLM1_16x\tLM1_16y\tLM1_17x\tLM1_17y\tLM1_18x\tLM1_18y\tLM1_19x\tLM1_19y\tLM1_20x\tLM1_20y\n";
   }
   LOG(INFO) << "Start grabbing and processing frames.";
   size_t frame_timestamp = 0;
@@ -209,16 +197,16 @@ DEFINE_string(output_video_path, "",
 	  
 	    LOG(INFO) << "[Hand<" << hand_index << ">]    Landmark<" << landmark_index++ << ">: (" << landmark.x() << ", " << landmark.y() << ", " << landmark.z() << ")\n";
 	  	if(hand_index==0 && landmark_index==1)
-	  		cout<<landmark.x()<<","<<landmark.y();	
+	  		cout<<landmark.x()<<"\t"<<landmark.y();	
 	  	else
-	  		cout<<"\t"<<landmark.x()<<","<<landmark.y();
+	  		cout<<"\t"<<landmark.x()<<"\t"<<landmark.y();
 	  }
 		LOG(INFO) << hand_index;
 	 	//std::cout << "\n";
 	 	++hand_index;
 	}
 	if (hand_index==0)
-		cout<<"0,0\n";
+		cout<<"0\n";
 	else
 		cout<<"\n";
   }
