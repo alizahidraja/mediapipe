@@ -29,6 +29,14 @@
 #include "mediapipe/gpu/gpu_buffer.h"
 #include "mediapipe/gpu/gpu_shared_data_internal.h"
 
+#include "mediapipe/framework/formats/landmark.pb.h"
+
+#include<dirent.h>
+#include<string>
+
+using namespace std;
+
+
 constexpr char kInputStream[] = "input_video";
 constexpr char kOutputStream[] = "output_video";
 constexpr char kWindowName[] = "MediaPipe";
@@ -96,8 +104,23 @@ DEFINE_string(output_video_path, "",
   LOG(INFO) << "Start running the calculator graph.";
   ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller poller,
                    graph.AddOutputStreamPoller(kOutputStream));
+  ASSIGN_OR_RETURN(mediapipe::OutputStreamPoller multi_hand_landmarks_poller,
+				   graph.AddOutputStreamPoller("multi_hand_landmarks"));
   MP_RETURN_IF_ERROR(graph.StartRun({}));
 
+
+
+
+  if (load_video) {
+	
+	LOG(INFO)<<FLAGS_input_video_path;
+	string output=FLAGS_input_video_path;
+	output.replace(output.end()-4,output.end(),".txt");    
+	freopen( output.c_str(), "w", stdout );
+	cout<<"LM0_00\tLM0_01\tLM0_02\tLM0_03\tLM0_04\tLM0_05\tLM0_06\tLM0_07\tLM0_08\tLM0_09\tLM0_10\tLM0_11\tLM0_12\tLM0_13\tLM0_14\tLM0_15\tLM0_16\tLM0_17\tLM0_18\tLM0_19\tLM0_20\t";
+	cout<<"LM1_00\tLM1_01\tLM1_02\tLM1_03\tLM1_04\tLM1_05\tLM1_06\tLM1_07\tLM1_08\tLM1_09\tLM1_10\tLM1_11\tLM1_12\tLM1_13\tLM1_14\tLM1_15\tLM1_16\tLM1_17\tLM1_18\tLM1_19\tLM1_20\n";
+
+  }
   LOG(INFO) << "Start grabbing and processing frames.";
   size_t frame_timestamp = 0;
   bool grab_frames = true;
@@ -139,7 +162,12 @@ DEFINE_string(output_video_path, "",
     mediapipe::Packet packet;
     if (!poller.Next(&packet)) break;
     std::unique_ptr<mediapipe::ImageFrame> output_frame;
-
+	
+	mediapipe::Packet multi_hand_landmarks_packet;
+	if (!multi_hand_landmarks_poller.Next(&multi_hand_landmarks_packet)) break;
+	//const auto& multi_hand_landmarks = multi_hand_landmarks_packet.Get<std::vector<std::vector<mediapipe::NormalizedLandmark>>>();
+	const auto& multi_hand_landmarks = multi_hand_landmarks_packet.Get<std::vector<mediapipe::NormalizedLandmarkList>>();
+	    
     // Convert GpuBuffer to ImageFrame.
     MP_RETURN_IF_ERROR(gpu_helper.RunInGlContext(
         [&packet, &output_frame, &gpu_helper]() -> ::mediapipe::Status {
@@ -170,6 +198,29 @@ DEFINE_string(output_video_path, "",
       const int pressed_key = cv::waitKey(5);
       if (pressed_key >= 0 && pressed_key != 255) grab_frames = false;
     }
+	
+	int hand_index = 0;
+	for (const auto& hand_landmarks : multi_hand_landmarks) {
+	  int landmark_index = 0;
+	  
+	  for (const auto& landmark : hand_landmarks.landmark()) {
+
+	   // std::cout << "[Hand<" << hand_index << ">] Landmark<" << landmark_index++ << ">: (" << landmark.x() << ", " << landmark.y() << ", " << landmark.z() << ")\n";
+	  
+	    LOG(INFO) << "[Hand<" << hand_index << ">]    Landmark<" << landmark_index++ << ">: (" << landmark.x() << ", " << landmark.y() << ", " << landmark.z() << ")\n";
+	  	if(hand_index==0 && landmark_index==1)
+	  		cout<<landmark.x()<<","<<landmark.y();	
+	  	else
+	  		cout<<"\t"<<landmark.x()<<","<<landmark.y();
+	  }
+		LOG(INFO) << hand_index;
+	 	//std::cout << "\n";
+	 	++hand_index;
+	}
+	if (hand_index==0)
+		cout<<"0,0\n";
+	else
+		cout<<"\n";
   }
 
   LOG(INFO) << "Shutting down.";
@@ -179,13 +230,51 @@ DEFINE_string(output_video_path, "",
 }
 
 int main(int argc, char** argv) {
+
   google::InitGoogleLogging(argv[0]);
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-  ::mediapipe::Status run_status = RunMPPGraph();
-  if (!run_status.ok()) {
-    LOG(ERROR) << "Failed to run the graph: " << run_status.message();
-  } else {
-    LOG(INFO) << "Success!";
+  
+  if (argc==2)
+  {
+	  gflags::ParseCommandLineFlags(&argc, &argv, true);
+	  ::mediapipe::Status run_status = RunMPPGraph();
+	  if (!run_status.ok()) {
+	    LOG(ERROR) << "Failed to run the graph: " << run_status.message();
+	  } else {
+	    LOG(INFO) << "Success!";
+	  }
+	  return 0;	
   }
-  return 0;
+  else
+  {
+
+		DIR *pDIR;
+        struct dirent *entry;
+        if( pDIR=opendir("./videos/") )
+        {
+                while(entry = readdir(pDIR))
+                {
+                    if( string(entry->d_name).find(".mp4") <50)
+                    {
+
+                    	string folder="trial/"
+                        LOG(INFO) << entry->d_name;	
+                        string argument="--input_video_path="+folder+string(entry->d_name);
+                        string name=folder+string(entry->d_name);
+                        strcpy(argv[2],argument.c_str());
+					    FLAGS_input_video_path=name;
+
+					    gflags::ParseCommandLineFlags(&argc, &argv, true);
+						::mediapipe::Status run_status = RunMPPGraph();
+						if (!run_status.ok()) {
+						  LOG(ERROR) << "Failed to run the graph: " << run_status.message();
+						} else {
+						  LOG(INFO) << "Success!";
+						}
+                    }
+                }
+                closedir(pDIR);
+        }
+	  
+	  return 0;
+  }
 }
