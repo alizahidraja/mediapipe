@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
                     if( string(entry->d_name).find(".mp4") <50)
                     {
 
-                    	string folder="trial/"
+                    	string folder="videos/";
                         LOG(INFO) << entry->d_name;	
                         string argument="--input_video_path="+folder+string(entry->d_name);
                         string name=folder+string(entry->d_name);
