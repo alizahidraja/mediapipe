@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
         {
                 while(entry = readdir(pDIR))
                 {
-                    if( string(entry->d_name).find(".mp4") <50)
+                    if( string(entry->d_name).find(".mp4") < 150)
                     {
 
                     	string folder="videos/";
